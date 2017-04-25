@@ -47,7 +47,7 @@
 }
 </style>
 <h1>api documentation for
-    <a>later (v1.2.0)</a>
+    <a href="https://github.com/bunkat/later#readme">later (v1.2.0)</a>
 </h1>
 <h4>Determine later (or previous) occurrences of recurring schedules</h4>
 <div class="apidocSectionDiv"><a href="#apidoc.tableOfContents" id="apidoc.tableOfContents"><h1>table of contents</h1></a><ol>
@@ -2100,22 +2100,21 @@ cleanDate(result);
       if (rangesArr[i] &amp;&amp; !compare(rangesArr[i][0], startDate)) {
         var nextStart = schedA ...</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* Changing between UTC and local time has changed.
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.<span class="apidocCodeKeywordSpan">schedule</span>(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+    },
+    prevRange: function(count, startDate, endDate) {
+      return getInstances("prev", count || 1, startDate, endDate, true);
+    }
+  };
+};
+later.setTimeout = function(fn, sched) {
+  var s = later.<span class="apidocCodeKeywordSpan">schedule</span>(sched), t;
+  if (fn) {
+    scheduleTimeout();
+  }
+  function scheduleTimeout() {
+    var now = Date.now(), next = s.next(2, now);
+    if (!next[0]) {
+      t = undefined;
 ...</pre></li>
     </ul>
 
@@ -2149,7 +2148,23 @@ cleanDate(result);
     }
   };
 }</pre></li>
-    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+
+describe('Set interval', function() {
+
+  it('should execute a callback after the specified amount of time', function(done) {
+this.timeout(0);
+
+var s = later.parse.recur().every(1).second(),
+    t = later.<span class="apidocCodeKeywordSpan">setInterval</span>(test, s),
+    count = 0;
+
+function test() {
+  later.schedule(s).isValid(new Date()).should.eql(true);
+  count++;
+  if(count &gt; 2) {
+    t.clear();
+...</pre></li>
     </ul>
 
 
@@ -2412,21 +2427,22 @@ start: function(dir, startDate) {
   return later.date.next(later.Y.val(month), later.M.val(month), val);
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">next</span>(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  var month = later.M.val(d), max = later.DAYS_IN_MONTH[month - 1];
+  if (month === 2 &amp;&amp; later.dy.extent(d)[1] === 366) {
+    max = max + 1;
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.<span class="apidocCodeKeywordSpan">next</span>(later.Y.val(d), later.M.val(d), later
+.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
 ...</pre></li>
     </ul>
 
@@ -2444,20 +2460,22 @@ start: function(dir, startDate) {
   return later.date.prev(later.Y.val(month), later.M.val(month), val &gt; DMax ? DMax : val || DMax);
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">prev</span>(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.<span class="apidocCodeKeywordSpan">prev</span>(later.Y.val(d), later.M.val(d), later.D.
+val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
+  val = val &gt; DMax ? 1 : val || DMax;
+  return later.date.next(later.Y.val(month), later.M.val(month), val);
+},
 ...</pre></li>
     </ul>
 
@@ -2643,21 +2661,22 @@ start: function(dir, startDate) {
   return later.date.next(later.Y.val(d) + (val &gt; later.M.val(d) ? 0 : 1), val);
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">next</span>(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  var month = later.M.val(d), max = later.DAYS_IN_MONTH[month - 1];
+  if (month === 2 &amp;&amp; later.dy.extent(d)[1] === 366) {
+    max = max + 1;
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.<span class="apidocCodeKeywordSpan">next</span>(later.Y.val(d), later.M.val(d), later
+.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
 ...</pre></li>
     </ul>
 
@@ -2675,20 +2694,22 @@ start: function(dir, startDate) {
   return later.date.prev(later.Y.val(d) - (val &gt;= later.M.val(d) ? 1 : 0), val);
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">prev</span>(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.<span class="apidocCodeKeywordSpan">prev</span>(later.Y.val(d), later.M.val(d), later.D.
+val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
+  val = val &gt; DMax ? 1 : val || DMax;
+  return later.date.next(later.Y.val(month), later.M.val(month), val);
+},
 ...</pre></li>
     </ul>
 
@@ -2873,21 +2894,22 @@ start: function(dir, startDate) {
   return val &gt; later.Y.val(d) &amp;&amp; val &lt;= later.Y.extent()[1] ? later.date.next(val) : later.NEVER;
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">next</span>(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  var month = later.M.val(d), max = later.DAYS_IN_MONTH[month - 1];
+  if (month === 2 &amp;&amp; later.dy.extent(d)[1] === 366) {
+    max = max + 1;
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.<span class="apidocCodeKeywordSpan">next</span>(later.Y.val(d), later.M.val(d), later
+.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
 ...</pre></li>
     </ul>
 
@@ -2904,20 +2926,22 @@ start: function(dir, startDate) {
   return val &lt; later.Y.val(d) &amp;&amp; val &gt;= later.Y.extent()[0] ? later.date.prev(val) : later.NEVER;
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">prev</span>(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.<span class="apidocCodeKeywordSpan">prev</span>(later.Y.val(d), later.M.val(d), later.D.
+val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
+  val = val &gt; DMax ? 1 : val || DMax;
+  return later.date.next(later.Y.val(month), later.M.val(month), val);
+},
 ...</pre></li>
     </ul>
 
@@ -3018,21 +3042,22 @@ extent: function(d) {
   return values[nextIdx];
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">next</span>(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  var month = later.M.val(d), max = later.DAYS_IN_MONTH[month - 1];
+  if (month === 2 &amp;&amp; later.dy.extent(d)[1] === 366) {
+    max = max + 1;
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.<span class="apidocCodeKeywordSpan">next</span>(later.Y.val(d), later.M.val(d), later
+.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
 ...</pre></li>
     </ul>
 
@@ -3063,7 +3088,23 @@ i = values.indexOf(val), start = next;
   }
   return next;
 }</pre></li>
-    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+});
+
+it('should return the next invalid value', function() {
+  var arr = [1,2,5],
+      extent = [1,5],
+      cur = 2,
+      expected = 3,
+      actual = later.array.<span class="apidocCodeKeywordSpan">nextInvalid</span>(cur, arr, extent);
+
+  actual.should.eql(expected);
+});
+
+it('should return the next invalid value when greater than arr', function() {
+  var arr = [1,2,5],
+      extent = [1,10],
+...</pre></li>
     </ul>
 
 
@@ -3091,20 +3132,22 @@ i = values.indexOf(val), start = next;
   return values[prevIdx];
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">prev</span>(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.<span class="apidocCodeKeywordSpan">prev</span>(later.Y.val(d), later.M.val(d), later.D.
+val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
+  val = val &gt; DMax ? 1 : val || DMax;
+  return later.date.next(later.Y.val(month), later.M.val(month), val);
+},
 ...</pre></li>
     </ul>
 
@@ -3135,7 +3178,23 @@ i = values.indexOf(val), start = next;
   }
   return next;
 }</pre></li>
-    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+});
+
+it('should return the previous invalid value', function() {
+  var arr = [1,2,5],
+      extent = [1,5],
+      cur = 5,
+      expected = 4,
+      actual = later.array.<span class="apidocCodeKeywordSpan">prevInvalid</span>(cur, arr, extent);
+
+  actual.should.eql(expected);
+});
+
+it('should return the previous invalid value when less than arr', function() {
+  var arr = [2,3,5],
+      extent = [1,10],
+...</pre></li>
     </ul>
 
 
@@ -3290,21 +3349,22 @@ start: function(dir, startDate) {
 0));
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">next</span>(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  var month = later.M.val(d), max = later.DAYS_IN_MONTH[month - 1];
+  if (month === 2 &amp;&amp; later.dy.extent(d)[1] === 366) {
+    max = max + 1;
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.<span class="apidocCodeKeywordSpan">next</span>(later.Y.val(d), later.M.val(d), later
+.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
 ...</pre></li>
     </ul>
 
@@ -3323,20 +3383,22 @@ start: function(dir, startDate) {
  : 0));
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">prev</span>(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.<span class="apidocCodeKeywordSpan">prev</span>(later.Y.val(d), later.M.val(d), later.D.
+val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
+  val = val &gt; DMax ? 1 : val || DMax;
+  return later.date.next(later.Y.val(month), later.M.val(month), val);
+},
 ...</pre></li>
     </ul>
 
@@ -3427,22 +3489,21 @@ extent: function(d) {
   later.date.timezone(false);
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* Added support for finding valid ranges as well as valid instances of schedules
-- _Later_ can now be used to schedule activities and meetings as well as point in time occurrences
-* Improved support for finding past ranges and instances
-- Searching forward or backward now produces the same valid occurrences
-* No more need to specify a resolution!
-- _Later_ now automatically handles this internally, you no longer need to specify your desired resolution. 'Every 5 minutes
-' now does exactly what you would expect it to :)
-* Changing between UTC and local time has changed.
-- Use `later.date.<span class="apidocCodeKeywordSpan">UTC</span>()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-- Recur is now at `later.parse.recur()`
-- Cron is now at `later.parse.cron(expr)`
-- Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-- Schedules are now compiled using `later.schedule(schedule)`
-- getNext is now `later.schedule(schedule).next(count, start, end)`
+  };
+};
+later.date = {};
+later.date.timezone = function(useLocalTime) {
+  later.date.build = useLocalTime ? function(Y, M, D, h, m, s) {
+    return new Date(Y, M, D, h, m, s);
+  } : function(Y, M, D, h, m, s) {
+    return new Date(Date.<span class="apidocCodeKeywordSpan">UTC</span>(Y, M, D, h, m, s));
+  };
+  var get = useLocalTime ? "get" : "getUTC", d = Date.prototype;
+  later.date.getYear = d[get + "FullYear"];
+  later.date.getMonth = d[get + "Month"];
+  later.date.getDate = d[get + "Date"];
+  later.date.getDay = d[get + "Day"];
+  later.date.getHour = d[get + "Hours"];
 ...</pre></li>
     </ul>
 
@@ -3488,7 +3549,23 @@ later.date.prev = function(Y, M, D, h, m, s) {
     </h2>
     <ul>
     <li>description and source-code<pre class="apidocCodePre">function getUTCDate() { [native code] }</pre></li>
-    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+
+
+var should = require('should');
+
+module.exports = runner = function (later, constraint) {
+
+function convertToUTC(d) {
+  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.<span class="apidocCodeKeywordSpan">getDate</span>(),
+    d.getHours(), d.getMinutes(), d.getSeconds()));
+}
+
+function runSingleTest(fn, data, utc) {
+  var date = utc ? convertToUTC(data.date) : data.date,
+      dateString = utc ? date.toUTCString() : date,
+      ex = utc &amp;&amp; (data[fn] instanceof Date) ? convertToUTC(data[fn]) : data[fn],
+...</pre></li>
     </ul>
 
 
@@ -3540,7 +3617,23 @@ later.date.prev = function(Y, M, D, h, m, s) {
     </h2>
     <ul>
     <li>description and source-code<pre class="apidocCodePre">function getUTCMonth() { [native code] }</pre></li>
-    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+
+
+var should = require('should');
+
+module.exports = runner = function (later, constraint) {
+
+function convertToUTC(d) {
+  return new Date(Date.UTC(d.getFullYear(), d.<span class="apidocCodeKeywordSpan">getMonth</span>(), d.getDate(),
+    d.getHours(), d.getMinutes(), d.getSeconds()));
+}
+
+function runSingleTest(fn, data, utc) {
+  var date = utc ? convertToUTC(data.date) : data.date,
+      dateString = utc ? date.toUTCString() : date,
+      ex = utc &amp;&amp; (data[fn] instanceof Date) ? convertToUTC(data[fn]) : data[fn],
+...</pre></li>
     </ul>
 
 
@@ -3614,21 +3707,22 @@ later.date.prev = function(Y, M, D, h, m, s) {
   return later.date.build(Y, M !== undefined ? M - 1 : 0, D !== undefined ? D : 1, h || 0, m || 0, s || 0);
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">next</span>(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  var month = later.M.val(d), max = later.DAYS_IN_MONTH[month - 1];
+  if (month === 2 &amp;&amp; later.dy.extent(d)[1] === 366) {
+    max = max + 1;
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.<span class="apidocCodeKeywordSpan">next</span>(later.Y.val(d), later.M.val(d), later
+.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
 ...</pre></li>
     </ul>
 
@@ -3684,20 +3778,22 @@ prev: function(d, val) {
   return later.date.build(Y, M, D, h, m, s);
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">prev</span>(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.<span class="apidocCodeKeywordSpan">prev</span>(later.Y.val(d), later.M.val(d), later.D.
+val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
+  val = val &gt; DMax ? 1 : val || DMax;
+  return later.date.next(later.Y.val(month), later.M.val(month), val);
+},
 ...</pre></li>
     </ul>
 
@@ -3902,21 +3998,22 @@ start: function(dir, startDate) {
   return next;
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">next</span>(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  var month = later.M.val(d), max = later.DAYS_IN_MONTH[month - 1];
+  if (month === 2 &amp;&amp; later.dy.extent(d)[1] === 366) {
+    max = max + 1;
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.<span class="apidocCodeKeywordSpan">next</span>(later.Y.val(d), later.M.val(d), later
+.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
 ...</pre></li>
     </ul>
 
@@ -3935,20 +4032,22 @@ start: function(dir, startDate) {
   return later.dc.end(later.date.prev(later.Y.val(month), later.M.val(month), 1 + 7 * (val - 1)));
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">prev</span>(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.<span class="apidocCodeKeywordSpan">prev</span>(later.Y.val(d), later.M.val(d), later.D.
+val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
+  val = val &gt; DMax ? 1 : val || DMax;
+  return later.date.next(later.Y.val(month), later.M.val(month), val);
+},
 ...</pre></li>
     </ul>
 
@@ -4138,21 +4237,22 @@ start: function(dir, startDate) {
   return later.date.next(later.Y.val(year), later.M.val(year), val);
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">next</span>(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  var month = later.M.val(d), max = later.DAYS_IN_MONTH[month - 1];
+  if (month === 2 &amp;&amp; later.dy.extent(d)[1] === 366) {
+    max = max + 1;
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.<span class="apidocCodeKeywordSpan">next</span>(later.Y.val(d), later.M.val(d), later
+.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
 ...</pre></li>
     </ul>
 
@@ -4171,20 +4271,22 @@ start: function(dir, startDate) {
   return later.date.prev(later.Y.val(year), later.M.val(year), val);
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">prev</span>(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.<span class="apidocCodeKeywordSpan">prev</span>(later.Y.val(d), later.M.val(d), later.D.
+val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
+  val = val &gt; DMax ? 1 : val || DMax;
+  return later.date.next(later.Y.val(month), later.M.val(month), val);
+},
 ...</pre></li>
     </ul>
 
@@ -4369,21 +4471,22 @@ start: function(dir, startDate) {
   return later.fd.val(d) &lt; val ? new Date(val) : later.NEVER;
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">next</span>(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  var month = later.M.val(d), max = later.DAYS_IN_MONTH[month - 1];
+  if (month === 2 &amp;&amp; later.dy.extent(d)[1] === 366) {
+    max = max + 1;
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.<span class="apidocCodeKeywordSpan">next</span>(later.Y.val(d), later.M.val(d), later
+.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
 ...</pre></li>
     </ul>
 
@@ -4400,20 +4503,22 @@ start: function(dir, startDate) {
   return later.fd.val(d) &gt; val ? new Date(val) : later.NEVER;
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">prev</span>(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.<span class="apidocCodeKeywordSpan">prev</span>(later.Y.val(d), later.M.val(d), later.D.
+val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
+  val = val &gt; DMax ? 1 : val || DMax;
+  return later.date.next(later.Y.val(month), later.M.val(month), val);
+},
 ...</pre></li>
     </ul>
 
@@ -4603,21 +4708,22 @@ start: function(dir, startDate) {
   return next;
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">next</span>(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  var month = later.M.val(d), max = later.DAYS_IN_MONTH[month - 1];
+  if (month === 2 &amp;&amp; later.dy.extent(d)[1] === 366) {
+    max = max + 1;
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.<span class="apidocCodeKeywordSpan">next</span>(later.Y.val(d), later.M.val(d), later
+.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
 ...</pre></li>
     </ul>
 
@@ -4635,20 +4741,22 @@ start: function(dir, startDate) {
   return later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d) + (val &gt;= later.h.val(d) ? -1 : 0), val);
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">prev</span>(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.<span class="apidocCodeKeywordSpan">prev</span>(later.Y.val(d), later.M.val(d), later.D.
+val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
+  val = val &gt; DMax ? 1 : val || DMax;
+  return later.date.next(later.Y.val(month), later.M.val(month), val);
+},
 ...</pre></li>
     </ul>
 
@@ -4997,22 +5105,21 @@ isForward = dir === "next", lastResult, rStart = isForward ? 0 : 1, rEnd = isFor
     // that were added during the schedule process
     for (var ...</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* Changing between UTC and local time has changed.
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.<span class="apidocCodeKeywordSpan">schedule</span>(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+    },
+    prevRange: function(count, startDate, endDate) {
+      return getInstances("prev", count || 1, startDate, endDate, true);
+    }
+  };
+};
+later.setTimeout = function(fn, sched) {
+  var s = later.<span class="apidocCodeKeywordSpan">schedule</span>(sched), t;
+  if (fn) {
+    scheduleTimeout();
+  }
+  function scheduleTimeout() {
+    var now = Date.now(), next = s.next(2, now);
+    if (!next[0]) {
+      t = undefined;
 ...</pre></li>
     </ul>
 
@@ -5061,7 +5168,23 @@ isForward = dir === "next", lastResult, rStart = isForward ? 0 : 1, rEnd = isFor
   };
 
 }</pre></li>
-    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+
+describe('Set interval', function() {
+
+  it('should execute a callback after the specified amount of time', function(done) {
+this.timeout(0);
+
+var s = later.parse.recur().every(1).second(),
+    t = later.<span class="apidocCodeKeywordSpan">setInterval</span>(test, s),
+    count = 0;
+
+function test() {
+  later.schedule(s).isValid(new Date()).should.eql(true);
+  count++;
+  if(count &gt; 2) {
+    t.clear();
+...</pre></li>
     </ul>
 
 
@@ -5341,21 +5464,22 @@ start: function(dir, startDate) {
   return next;
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">next</span>(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  var month = later.M.val(d), max = later.DAYS_IN_MONTH[month - 1];
+  if (month === 2 &amp;&amp; later.dy.extent(d)[1] === 366) {
+    max = max + 1;
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.<span class="apidocCodeKeywordSpan">next</span>(later.Y.val(d), later.M.val(d), later
+.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
 ...</pre></li>
     </ul>
 
@@ -5373,20 +5497,22 @@ start: function(dir, startDate) {
   return later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d), later.h.val(d) + (val &gt;= later.m.val(d) ? -1 : 0), val);
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">prev</span>(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.<span class="apidocCodeKeywordSpan">prev</span>(later.Y.val(d), later.M.val(d), later.D.
+val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
+  val = val &gt; DMax ? 1 : val || DMax;
+  return later.date.next(later.Y.val(month), later.M.val(month), val);
+},
 ...</pre></li>
     </ul>
 
@@ -6280,21 +6406,22 @@ start: function(dir, startDate) {
   return next;
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">next</span>(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  var month = later.M.val(d), max = later.DAYS_IN_MONTH[month - 1];
+  if (month === 2 &amp;&amp; later.dy.extent(d)[1] === 366) {
+    max = max + 1;
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.<span class="apidocCodeKeywordSpan">next</span>(later.Y.val(d), later.M.val(d), later
+.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
 ...</pre></li>
     </ul>
 
@@ -6313,20 +6440,22 @@ start: function(dir, startDate) {
 1 : 0), val);
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">prev</span>(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.<span class="apidocCodeKeywordSpan">prev</span>(later.Y.val(d), later.M.val(d), later.D.
+val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
+  val = val &gt; DMax ? 1 : val || DMax;
+  return later.date.next(later.Y.val(month), later.M.val(month), val);
+},
 ...</pre></li>
     </ul>
 
@@ -6517,21 +6646,22 @@ start: function(dir, startDate) {
   return next;
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">next</span>(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  var month = later.M.val(d), max = later.DAYS_IN_MONTH[month - 1];
+  if (month === 2 &amp;&amp; later.dy.extent(d)[1] === 366) {
+    max = max + 1;
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.<span class="apidocCodeKeywordSpan">next</span>(later.Y.val(d), later.M.val(d), later
+.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
 ...</pre></li>
     </ul>
 
@@ -6549,20 +6679,22 @@ start: function(dir, startDate) {
   return later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d) + (val &gt;= later.t.val(d) ? -1 : 0), 0, 0, val);
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">prev</span>(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.<span class="apidocCodeKeywordSpan">prev</span>(later.Y.val(d), later.M.val(d), later.D.
+val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
+  val = val &gt; DMax ? 1 : val || DMax;
+  return later.date.next(later.Y.val(month), later.M.val(month), val);
+},
 ...</pre></li>
     </ul>
 
@@ -6752,21 +6884,22 @@ start: function(dir, startDate) {
   return later.date.next(later.Y.val(month), later.M.val(month), Math.max(1, (val - 1) * 7 - (later.dw.val(month) - 2)));
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">next</span>(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  var month = later.M.val(d), max = later.DAYS_IN_MONTH[month - 1];
+  if (month === 2 &amp;&amp; later.dy.extent(d)[1] === 366) {
+    max = max + 1;
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.<span class="apidocCodeKeywordSpan">next</span>(later.Y.val(d), later.M.val(d), later
+.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
 ...</pre></li>
     </ul>
 
@@ -6786,20 +6919,22 @@ start: function(dir, startDate) {
 2))));
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">prev</span>(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.<span class="apidocCodeKeywordSpan">prev</span>(later.Y.val(d), later.M.val(d), later.D.
+val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
+  val = val &gt; DMax ? 1 : val || DMax;
+  return later.date.next(later.Y.val(month), later.M.val(month), val);
+},
 ...</pre></li>
     </ul>
 
@@ -6996,21 +7131,22 @@ start: function(dir, startDate) {
   return later.date.next(later.Y.val(wyStart), later.M.val(wyStart), later.D.val(wyStart) + 7 * (val - 1));
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-    - Use `later.date.UTC()` and `later.date.localTime()` to switch between the two.
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">next</span>(count, start, end)`
-    - getPrev is now `later.schedule(schedule).prev(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  var month = later.M.val(d), max = later.DAYS_IN_MONTH[month - 1];
+  if (month === 2 &amp;&amp; later.dy.extent(d)[1] === 366) {
+    max = max + 1;
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.<span class="apidocCodeKeywordSpan">next</span>(later.Y.val(d), later.M.val(d), later
+.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.prev(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
 ...</pre></li>
     </ul>
 
@@ -7033,20 +7169,22 @@ start: function(dir, startDate) {
   return later.wy.end(later.date.next(later.Y.val(wyEnd), later.M.val(wyEnd), later.D.val(wyEnd) + 7 * (val - 1)));
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">...
-* API for parsers has changed.
-    - Recur is now at `later.parse.recur()`
-    - Cron is now at `later.parse.cron(expr)`
-    - Text is now at `later.parse.text(expr)`
-* API for calculating occurrences has changed.
-    - Schedules are now compiled using `later.schedule(schedule)`
-    - getNext is now `later.schedule(schedule).next(count, start, end)`
-    - getPrev is now `later.schedule(schedule).<span class="apidocCodeKeywordSpan">prev</span>(count, start, end)`
-* `After` meaning 'don't start until after this amount of time' has been deprecated.
-    - This was a hack since people had a hard time with resolutions. With resolutions gone, this is no longer needed and is deprecated
- since it produced non-deterministic schedules.
-
-**Note:** Schedule definitions did not change (unless you were using `after` constraints which have been deprecated). If you stored
- any schedule definitions from v0.0.20, they should continue to work unchanged in v1.0.0.
+  }
+  return d.DExtent = [ 1, max ];
+},
+start: function(d) {
+  return d.DStart || (d.DStart = later.date.next(later.Y.val(d), later.M.val(d), later.D.val(d)));
+},
+end: function(d) {
+  return d.DEnd || (d.DEnd = later.date.<span class="apidocCodeKeywordSpan">prev</span>(later.Y.val(d), later.M.val(d), later.D.
+val(d)));
+},
+next: function(d, val) {
+  val = val &gt; later.D.extent(d)[1] ? 1 : val;
+  var month = later.date.nextRollover(d, val, later.D, later.M), DMax = later.D.extent(month)[1];
+  val = val &gt; DMax ? 1 : val || DMax;
+  return later.date.next(later.Y.val(month), later.M.val(month), val);
+},
 ...</pre></li>
     </ul>
 
